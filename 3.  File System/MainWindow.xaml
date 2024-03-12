@@ -1,0 +1,57 @@
+<Window x:Class="VJ03_DatInfo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:VJ03_DatInfo"
+        mc:Ignorable="d"
+        Title="Vježba 03 Datoteke" Height="500" Width="600">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Label Content="Direktorij:" FontWeight="SemiBold"/>
+        <StackPanel Grid.Column="1" Orientation="Horizontal">
+            <TextBox Name="txtDirektorij" Margin="5" Width="350"/>
+            <Button Content="..." Name="btnOdaberiDirektorij" Margin="5"
+                    Padding="5,0" Click="btnOdaberiDirektorij_Click"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+            <Button Content="Dohvati datoteke" Name="btnDohvatiDatoteke" Margin="5"
+                    Padding="5,0" Click="btnDohvatiDatoteke_Click" />
+            <Button Content="Obriši popis" Name="btnObrisi" Margin="5"
+                    Padding="5,0" Click="btnObrisi_Click" />
+        </StackPanel>
+        <ListBox Grid.Row="2" Grid.ColumnSpan="2" Name="lbDatoteke" SelectionChanged="lbDatoteke_SelectionChanged" />
+        <Label Grid.Row="3" Content="Odabrana datoteka:" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="3" Grid.Column="1" Name="txtOdabranaDatoteka" Margin="5" Width="350" HorizontalAlignment="Left"/>
+        <Label Grid.Row="4" Content="Indeks odabrane datoteke:" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="4" Grid.Column="1" Name="txtOdabranIndex" Margin="5" Width="30" HorizontalAlignment="Left"/>
+        <Label Grid.Row="5" Grid.ColumnSpan="2" Content="Podaci o odabranoj datoteci" FontWeight="Bold" />
+
+        <Label Grid.Row="6" Content="Veličina:" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="6" Grid.Column="1" Name="txtVelicinaDatoteke" Margin="5" Width="150" HorizontalAlignment="Left"/>
+        <Label Grid.Row="7" Content="Vrijeme kreiranja:" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="7" Grid.Column="1" Name="txtVrijemeKreiranja" Margin="5" Width="150" HorizontalAlignment="Left"/>
+        <Label Grid.Row="8" Content="Zadnji pristup:" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="8" Grid.Column="1" Name="txtVrijemeZadnjegPristupa" Margin="5" Width="150" HorizontalAlignment="Left"/>
+        <Label Grid.Row="9" Content="Atributi:" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="9" Grid.Column="1" Name="txtAtributi" Margin="5" Width="150" HorizontalAlignment="Left"/>
+        <Label Grid.Row="10" Content="Read only:" FontWeight="SemiBold"/>
+        <TextBox Grid.Row="10" Grid.Column="1" Name="txtSamoCitanje" Margin="5" Width="150" HorizontalAlignment="Left"/>
+    </Grid>
+</Window>

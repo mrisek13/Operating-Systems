@@ -5,139 +5,198 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MevDir
+namespace OS_Rekap_01_04
 {
-    // podaci o direktoriju
-    class DirInfo
-    {
-        public string Name { get; set; }
-        public int FilesCount { get; set; }
-        public long FilesLength { get; set; }
-        public int DirectoriesCount { get; set; }
-    }
-
     class Program
     {
-        // parametri -> direktorij patern
         static void Main(string[] args)
         {
-            string rootDirektorij;
-            string filter = "";
+            string prviParametar="";
+            string drugiParametar="";
 
-            // tekući folder
-            if (args.Count() == 0)
+            /* OBRADA ULAZNIH ARGUMENATA, Command line arguments */
+            // ako postoji barem jedan argument
+            if (args.Length > 0)
             {
-                rootDirektorij = Directory.GetCurrentDirectory();
+                prviParametar = args[0];
             }
-            else
+            // ako postoji više od 1 argumenta
+            if (args.Length > 1)
             {
-                rootDirektorij = args[0];
-            }
-
-            // pattern za filtriranje
-            if (args.Count() > 1)
-            {
-                filter = args[1];
-            }
-            else
-            {
-                filter = "*";
+                drugiParametar = args[1];
             }
 
-            if (Directory.Exists(rootDirektorij))
-                ispisiDirektorij(rootDirektorij, filter);
-            else
-                Console.WriteLine("Greška ulaznog argumenta - pogrešno zadani direktorij!");
+            string folder;
+            if (!String.IsNullOrWhiteSpace(prviParametar))
+            {
+                folder = prviParametar;
+            }
+            // ako nije definiran prvi parametar tada uzimamo trenutačni direktorij
+            else {
+                folder = Directory.GetCurrentDirectory();
+            }
 
-            #if DEBUG
+            Console.WriteLine($"Odabran folder: {folder}");
+
+            if (!Directory.Exists(folder))
+            {
+                Console.WriteLine("Odabran folder ne postoji!");
+                Console.ReadKey();
+                return;
+            }
+
+            /* ISPIS PODFOLDERA: Directory.GetDirectories */
+            string[] podfolderi = Directory.GetDirectories(folder);
+            Console.WriteLine("Podfolderi:");
+            foreach(string f in podfolderi)
+            {
+                //Console.WriteLine($"\t{f}");
+                DirectoryInfo dInfo = new DirectoryInfo(f);
+                Console.WriteLine($"\t{dInfo.Name, -30} kreiran {dInfo.CreationTime}");
+            }
+
+            Console.WriteLine("\nPRITISNITE ENTER");
             Console.ReadLine();
-            #endif
-        }
 
-        // metoda za ispis sadržaja direktorija
-        private static void ispisiDirektorij(string path, string pattern)
-        {
-            // targetDir
-            DirectoryInfo targetDir = new DirectoryInfo(path);
-            long velicina = 0, dirVelicina = 0;
-            int koliko = 0, dirKoliko = 0, filesKoliko = 0;
+            /* KREIRANJE FOLDERA: Directory.CreateDirectory */
+            Console.WriteLine($"Kreiranje foldera");
+            string noviFolder = Path.Combine(folder, "MEV");
+            if (Directory.Exists(noviFolder))
+            {
+                Console.WriteLine($"Folder {noviFolder} već postoji!");
+            }
+            else
+            {
+                Directory.CreateDirectory(noviFolder);
+                Console.WriteLine($"Kreiran folder: {noviFolder}");
+            }
 
-            // naziv direktorija i prazan red
-            Console.WriteLine("MEV directory info plus 1.0");
-            Console.WriteLine("\nDirectory " + path);
-            Console.WriteLine();
+            Console.WriteLine("\nPRITISNITE ENTER");
+            Console.ReadLine();
 
-            // popis datoteka u folderu
+            /* PREIMENOVANJE FOLDERA: Directory.Move */
+            string noviFolderBackup = noviFolder + "_backup";
+            Console.WriteLine($"Preimenovanje foldera {noviFolder}");
+            Console.WriteLine($"--> {noviFolderBackup}");
             try
             {
-                FileInfo[] files = targetDir.GetFiles();
-                foreach (FileInfo file in files)
+                Directory.Move(noviFolder, noviFolderBackup);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Greška preimenovanja: " + ex.Message);
+            }
+
+            Console.WriteLine("\nPRITISNITE ENTER");
+            Console.ReadLine();
+
+            /* ISPIS DETALJA O DATOTEKAMA DirectoryInfo - GetFiles */
+            DirectoryInfo fInfo = new DirectoryInfo(folder);
+            FileInfo[] datoteke = fInfo.GetFiles();
+            Console.WriteLine($"Folder:{folder}");
+            Console.WriteLine("Popis datoteka:");
+            foreach(FileInfo dat in datoteke)
+            {
+                Console.WriteLine($"\t{dat.Name,-40} {VratiVelicinu(dat.Length),10}" +
+                    $" Kreirana: {dat.CreationTime}");
+
+                // dohvaćamo naziv datoteke bez ekstenzije
+                string naziv = Path.GetFileNameWithoutExtension(dat.Name);
+
+                // kreiramo naziv nove datoteke s ekstenzijom tmp
+                string novaDat = Path.Combine(noviFolderBackup, naziv + ".tmp");
+
+                if (!File.Exists(novaDat))
                 {
-                    velicina += file.Length;
-                    koliko++;
-                    Console.WriteLine("{0,-20}{1,18:N0} bytes {2}", file.LastWriteTime.ToString("dd.MM.yyyy hh:mm:ss"), file.Length, Path.GetFileName(file.Name));
+                    //Kopiranje datoteke u podfolder MEV_Backup sa ekstenzijom .tmp
+                    File.Copy(dat.FullName, novaDat);
+                    Console.WriteLine($"\tKopirano --> {novaDat}");
                 }
             }
-            catch (UnauthorizedAccessException)
+
+            Console.WriteLine("\nPRITISNITE ENTER");
+            Console.ReadLine();
+
+            /* KREIRANJE TXT DATOTEKE S BROJEM DATOTEKA U DIREKTORIJU */
+            string txtDat = Path.Combine(folder, "DirInfo.txt");
+            using(StreamWriter sWriter = new StreamWriter(txtDat, true))
             {
-                Console.WriteLine("Greška: nedozvoljen pristup...");
+                sWriter.WriteLine($"Datum: {DateTime.Now}");
+                sWriter.WriteLine($"Broj datoteka: {datoteke.Length}");
+                sWriter.WriteLine("----------");
             }
-            catch (PathTooLongException)
+            Console.WriteLine($"Kreirana datoteka: {txtDat}");
+            Console.WriteLine("\nPRITISNITE ENTER");
+            Console.ReadLine();
+
+            /* DOHVAT ODREĐENIH DATOTEKA */
+            /*  Argumenti za DirectoryInfo.GetFiles metodu
+                * - dohvaća sve datoteke
+                *.txt - dohvaća datoteke s txt ekstenzijom, *.docx - word datoteke, itd...
+                c* - dohvaća sve datoteke čiji naziv započinje s c
+             */
+            FileInfo[] txtDatoteke = fInfo.GetFiles("*.txt");
+            Console.WriteLine($"Folder:{folder}");
+            Console.WriteLine("Popis txt datoteka:");
+            foreach (FileInfo dat in txtDatoteke)
             {
-                Console.WriteLine("Greška: predugački naziv foldera...");
+                Console.WriteLine($"\t{dat.Name,-40} {VratiVelicinu(dat.Length),10}" +
+                    $" Kreirana: {dat.CreationTime,15}");
             }
 
-            // popis poddirektorija u direktoriju
-            DirectoryInfo[] direktoriji = targetDir.GetDirectories();
-            foreach (DirectoryInfo direktorij in direktoriji)
-            {
-                DirInfo fi = racunajDirektorij(direktorij, pattern);
-                dirVelicina += fi.FilesLength;
-                dirKoliko += fi.DirectoriesCount;
-                filesKoliko += fi.FilesCount;
-                Console.WriteLine("{0,13} files {1,18:N0} bytes <DIR> {2}", fi.FilesCount, fi.FilesLength, Path.GetFileName(fi.Name));
-            }
-            // slobodno mjesta na disku
-            DriveInfo disc = new DriveInfo(Path.GetPathRoot(path));
+            Console.WriteLine("\nPRITISNITE ENTER");
+            Console.ReadLine();
 
-            // rekapitulacija
-            Console.WriteLine("{0,11} file(s)       {1,18:N0} bytes", koliko, velicina);
-            Console.WriteLine("{0,11} total file(s) {1,18:N0} bytes", filesKoliko, dirVelicina);
-            Console.WriteLine("{0,11} dirs(s)       {1,18:N0} bytes", dirKoliko, dirVelicina);
-            Console.WriteLine("   total free space {0,18:N0} bytes", disc.TotalFreeSpace);
+
+            /* BRISANJE DATOTEKA */
+            Console.WriteLine("BRISANJE DATOTEKA");
+            Console.WriteLine($"Folder:{noviFolderBackup}");
+            // 1. način
+            /*string[] datotekeZaBrisanje = Directory.GetFiles(noviFolderBackup);
+            foreach (string dat in datotekeZaBrisanje) {
+                try {
+                    File.Delete(dat);
+                    Console.WriteLine($"Izbrisano: {dat}");
+                }
+                catch (Exception e) {
+                    Console.WriteLine($"Problem s brisanjem: {dat} {e.Message}");
+                }
+            }*/
+
+            // 2. način
+            DirectoryInfo dfInfo = new DirectoryInfo(noviFolderBackup);
+            FileInfo[] datotekeDelete = dfInfo.GetFiles();
+            foreach (FileInfo dat in datotekeDelete) {
+                try {
+                    dat.Delete();
+                    Console.WriteLine($"Izbrisano: {dat.Name}");
+                }
+                catch (Exception e) {
+                    Console.WriteLine($"Problem s brisanjem: {dat.Name} {e.Message}");
+                }
+            }
+
+
+            /* BRISANJE FOLDERA I ČITAVOG SADRŽAJA */
+            Directory.Delete(noviFolderBackup, true);
+
+            Console.WriteLine("\nKRAJ PROGRAMA");
+            Console.ReadKey();
         }
 
-        // rekurzivna metoda za izračun broja datoteka i veličine direktorija
-        private static DirInfo racunajDirektorij(DirectoryInfo di, string pattern)
+        private static string VratiVelicinu(double velicinaDatoteke)
         {
-            long velicina = 0;   // velicina svih datoteka zajedno
-            int koliko = 0;  // broj datoteka u direktoriju
-            int kolikoPoddirektorija = 1;
-            try
+            string[] sufix = { "B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+            int s = 0;
+
+            while (velicinaDatoteke >= 1024)
             {
-                // prvo prođemo sve fileove i zbojimo veličine
-                FileInfo[] files = di.GetFiles(pattern);
-                foreach (FileInfo file in files)
-                {
-                    koliko++;
-                    velicina += file.Length;
-                }
-
-                // nakon toga prođemo sve poddirektorije u direktoriju
-                DirectoryInfo[] dirs = di.GetDirectories();
-                foreach (DirectoryInfo direktorij in dirs)
-                {
-                    // rekurzivni poziv
-                    DirInfo poddir = racunajDirektorij(direktorij, pattern);
-                    velicina += poddir.FilesLength;
-                    koliko += poddir.FilesCount;
-                    kolikoPoddirektorija += poddir.DirectoriesCount;
-                }
+                s++;
+                velicinaDatoteke = velicinaDatoteke / 1024;
             }
-            catch
-            { }
 
-            return new DirInfo { Name = di.Name, FilesCount = koliko, FilesLength = velicina, DirectoriesCount = kolikoPoddirektorija };
+            velicinaDatoteke = Math.Round(velicinaDatoteke, 2);
+            return velicinaDatoteke.ToString() + " " + sufix[s];
         }
     }
 }

@@ -1,0 +1,27 @@
+[SERVER]
+
+Servis pokrenut
+Pritisnite ENTER za zaustavljanje servisa...
+Proces klijent salje: Ja sam klijent!
+
+**********************************************************************************************
+
+[CLIENT]
+  
+Suma (preko pipeline): 5
+Razlika (preko pipeline): 4
+Suma (preko http): 10
+Razlika (preko http): 1
+Process name                PID   Memorija
+===================== ========= ==========
+java                       2544    1,33 GB
+Memory Compression         3980    1,15 GB
+dwm                        8868  492,60 MB
+devenv                     5896  392,56 MB
+devenv                     7344  392,09 MB
+msedge                     7220  312,62 MB
+ServiceHub.RoslynCode      3052  307,82 MB
+ServiceHub.RoslynCode     16792  295,48 MB
+MsMpEng                    6096  294,36 MB
+firefox                    9868  263,98 MB
+===================== ========= ==========
